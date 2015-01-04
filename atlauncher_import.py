@@ -98,7 +98,7 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, inst
 
         f['download_md5'] = lib.attrib['md5']
         f['install_filename'] = lib.attrib['file']
-        f['name'] = lib.attrib['name']
+        f['name'] = 'a library'
         f['install_method'] = 'copy'
         f['description'] = 'Library.'
         if 'server' in lib.attrib.keys():
