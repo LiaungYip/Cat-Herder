@@ -57,7 +57,7 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, inst
             'flan': 'mods/Flan/',  # not tested
             'denlib': 'mods/denlib/',  # not tested
             'plugins': 'plugins/',  # not tested
-            'coremods': 'coremods/',  #not tested
+            'coremods': 'coremods/',  # not tested
             'jarmod': 'jarmods/',  #not tested
             'disabled': 'disabledmods/',  #not tested
             'bin': 'bin/',  #not tested
@@ -98,11 +98,12 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, inst
 
         f['download_md5'] = lib.attrib['md5']
         f['install_filename'] = lib.attrib['file']
-        f['name'] = mod.attrib['name']
+        f['name'] = lib.attrib['name']
         f['install_method'] = 'copy'
         f['description'] = 'Library.'
         if 'server' in lib.attrib.keys():
             f['required_on_server'] = True
+            # noinspection PyUnusedLocal
             [dir_path, filename] = os.path.split('libraries/' + lib.attrib['server'])
             f['install_path'] = dir_path
             print (
@@ -124,7 +125,7 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, inst
     #
     # for f in files:
     # fn = f['filename']
-    #     if 'forge' in fn:
+    # if 'forge' in fn:
     #         script = STARTUP_SCRIPT_TEMPLATE.format(fn=fn)
     #         with open(INSTALL_FOLDER+'start-forge.sh', 'w') as outfile:
     #             outfile.write(script)
@@ -165,13 +166,10 @@ def expand_atlauncher_url(original_url, download_type):
                 return status[0]
             else:
                 return 'INVALID ADFLY LINK OR OTHER HTTP ERROR'
-        print ('Download file {f} manually from {u} and place in {d}'.format(f=lib.attrib['file'], u=lib.attrib['url'],
-                                                                             d=download_cache_folder))
-        return "BROWSER DOWNLOAD"
-
+        return 'Download file manually'
 
 if __name__ == "__main__":
-    mp = atlauncher_to_catherder(pack_name="BevosTechPack", pack_version="BTP-11-Full",
+    atl_pack = atlauncher_to_catherder(pack_name="BevosTechPack", pack_version="BTP-11-Full",
                                  download_cache_folder="D:/ATLauncher_Hacking/cache/",
                                  install_folder="D:/ATLauncher_Hacking/install/")
-    mp.install_server()
+    atl_pack.install_server()

@@ -25,7 +25,7 @@ class Mod_Pack(dict):
         self.mod_files.append(self.minecraft_server_jar())
 
         for f in self.mod_files:
-            if f['required_on_server'] == False:
+            if not f['required_on_server']:
                 # pass
                 continue
 

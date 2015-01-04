@@ -44,12 +44,12 @@ class Mod_File(dict):
 
     def validate_attributes(self):
         assert sorted(self.keys()) == self.attribs  # Check no extra attributes added
-        assert self['name'] != None
-        assert self['download_url_primary'] != None
+        assert self['name'] is not None
+        assert self['download_url_primary'] is not None
         assert self['required_on_server'] in (True, False)
         assert self['required_on_client'] in (True, False)
         assert self['install_method'] in ('copy', 'unzip')
-        assert self['install_path'] != None
-        assert self['install_filename'] != None
+        assert self['install_path'] is not None
+        assert self['install_filename'] is not None
         assert self['special_actions'] in (None, 'create_run_sh')
         

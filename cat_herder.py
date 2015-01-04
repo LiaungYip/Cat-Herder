@@ -16,6 +16,6 @@ def main(arg1):
 
 # Command line argument parsing by 'plac'
 if __name__ == '__main__':
-    import plac;
+    import plac
 
     plac.call(main)
