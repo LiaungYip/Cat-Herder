@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Li-aung "Lewis" Yip
@@ -54,7 +55,10 @@ def list_packs(packs_json):
     dry_run=("Perform a dry run (don't download any mod files or install anything)", 'flag', 'd')
 )
 def main(operation, pack_name, pack_version, install_folder, cache_folder, dry_run):
-    """A tool for installing and updating Minecraft servers based on ATLauncher mod packs."""
+    """A tool for installing and updating Minecraft servers based on ATLauncher mod packs.
+    Example invocation:
+
+    cat_herder.py install -p BevosTechPack -v BTP-11-Full -c /home/mc/cache -i /home/mc/install/"""
 
     if install_folder:
         install_folder = os.path.realpath(install_folder)
