@@ -24,9 +24,10 @@ def fetch_url(source_url, dest_filename, md5=None):
 
     if os.path.isfile(dest_file_path):
         if md5 is None:
-            print('{f} already exists - No MD5 checksum given - assuming file is OK and skipping MD5 check.'.format(
+            print('{f} already exists - No MD5 checksum given - redownloading file.'.format(
                 f=dest_filename))
-            return dest_file_path
+            # return dest_file_path
+            os.remove(dest_file_path)
         elif check_md5(dest_file_path, md5):
             print('{fn} already exists - MD5 of cached file matches {m} - Using cached copy of {fn}'.format(m=md5,
                                                                                                             fn=dest_file_path))
