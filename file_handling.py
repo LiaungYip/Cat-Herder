@@ -9,10 +9,27 @@ def check_md5(file_path, target_md5):
 
 
 def download(source_url, dest_file_path):
-    d = urllib2.urlopen(source_url)
-    output = open(dest_file_path, 'wb')
-    output.write(d.read())
-    output.close()
+    try:
+        d = urllib2.urlopen(source_url)
+    except urllib2.HTTPError, e:
+        if e.code == 404:
+            print ("ERROR - {u} was 404. Check the exact spelling of the pack name and pack version.".format(u=source_url))
+            quit()
+    # urllib doesn't always seem to throw a HTTPError in the case of a 404. Seems quite happy to open
+    # a HTML 'Sorry, 404' page if the server presents one. Hence this additional check.
+    if d.getcode() == 404:
+        print ("ERROR - {u} was 404. Check the exact spelling of the pack name and pack version.".format(u=source_url))
+        quit()
+    # Getting 'text/html' usually indicates something is buggered.
+    # i.e. NodeCDN gives a 404 html page but no 404 response code.
+    if d.headers.getheaders('Content-Type')[0] == 'text/html':
+        print ("""ERROR - requested {u}.
+However! server responded with Content-Type 'text/html' instead of an actual file.
+Maybe a 404 page?. Check the exact spelling of the pack name and pack version.""".format(u=source_url))
+        quit()
+    with open(dest_file_path, 'wb') as output:
+        output.write(d.read())
+        output.close()
 
 
 def fetch_url(source_url, dest_filename, md5=None):
