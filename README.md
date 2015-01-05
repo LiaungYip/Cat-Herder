@@ -23,3 +23,7 @@ It's a Python script. It uses Python 2.
 Dependencies are `plac` and `unshortenit`.
 
 Put the .py files somewhere and run `cat-herder.py` at the command line. `cat_herder.py -h` for usage instructions.
+
+## License
+
+This software is made available under the terms of the MIT License. Have fun.
