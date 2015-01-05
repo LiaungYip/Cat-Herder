@@ -70,6 +70,7 @@ def main(operation, pack_name, pack_version, install_folder, cache_folder, dry_r
     else:
         cache_folder = os.path.realpath('./cache/')
 
+    mkdir (cache_folder)
     os.chdir(cache_folder)
     packs_json = get_pack_json()
 
