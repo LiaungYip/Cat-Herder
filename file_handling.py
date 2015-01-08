@@ -1,12 +1,17 @@
 import hashlib
 import os
 import urllib2
-
+from zlib import crc32
 
 def check_md5(file_path, target_md5):
-    file_md5 = hashlib.md5(open(file_path, 'rb').read()).hexdigest()
-    return file_md5 == target_md5
+    with open(file_path,'rb') as fh:
+        file_md5 = hashlib.md5(open(file_path, 'rb').read()).hexdigest()
+        return file_md5 == target_md5
 
+def check_crc32(file_path, target_crc32):
+    with open(file_path,'rb') as fh:
+        file_crc32 = crc32(fh.read())
+        return file_crc32 == target_crc32
 
 def download(source_url, dest_file_path):
     try:
