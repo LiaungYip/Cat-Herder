@@ -4,6 +4,8 @@ import os.path
 
 from file_handling import fetch_url, mkdir
 
+STARTUP_SCRIPT_TEMPLATE = """#!/bin/bash
+java -Xmx2G -XX:MaxPermSize=256M -jar {fn} nogui"""
 
 class Mod_File(dict):
     attribs = sorted(('name',
@@ -42,6 +44,18 @@ class Mod_File(dict):
                 print ("Installing {f} by unzipping to {d}".format(f=src_path, d=inst_path))
                 z.extractall(inst_path)
 
+        if self['special_actions'] == 'create_run_sh':
+            if 'forge' in self['install_filename']:
+                script_name = 'start_forge_server.sh'
+            elif 'cauldron' in self['install_filename']:
+                script_name = 'start_cauldron_server.sh'
+            else:
+                raise ValueError
+            script = STARTUP_SCRIPT_TEMPLATE.format(fn=self['install_filename'])
+            script_path = os.path.join(mod_pack['install_folder'],script_name)
+            with open(script_path, 'w') as fh:
+                fh.write(script)
+
     def validate_attributes(self):
         assert sorted(self.keys()) == self.attribs  # Check no extra attributes added
         assert self['name'] is not None
@@ -52,4 +66,6 @@ class Mod_File(dict):
         assert self['install_path'] is not None
         assert self['install_filename'] is not None
         assert self['special_actions'] in (None, 'create_run_sh')
-        
+
+
+

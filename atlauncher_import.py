@@ -71,6 +71,8 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, inst
         if t in install_types_folders.keys():
             f['install_method'] = 'copy'
             f['install_path'] = install_types_folders[t]
+            if t in ['forge','mcpc']:
+                f['special_actions'] = 'create_run_sh'
         elif t == 'extract':
             f['install_method'] = 'unzip'
             e = mod.attrib['extractto']
@@ -120,16 +122,6 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, inst
     mp.mod_files.append(atlauncher_config_zip(pack_name, pack_version))
 
     return mp
-    #
-    # # Create startup script for forge server. Don't need to do this for Cauldron server (the cauldron zip comes with its own .sh file.)
-    #
-    # for f in files:
-    # fn = f['filename']
-    # if 'forge' in fn:
-    #         script = STARTUP_SCRIPT_TEMPLATE.format(fn=fn)
-    #         with open(INSTALL_FOLDER+'start-forge.sh', 'w') as outfile:
-    #             outfile.write(script)
-
 
 def fetch_atlauncher_config_xml(pack_name, pack_version):
     config_xml_url = "{u}packs/{pn}/versions/{pv}/Configs.xml".format(u=URL_BASE, pn=pack_name, pv=pack_version)
