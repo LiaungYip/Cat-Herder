@@ -27,6 +27,9 @@ class Mod_File(dict):
             self[a] = None
 
     def download(self):
+        if self['download_url_primary'] == "Download file manually":
+            print "Not installing {f} automatically. Download it manually if you need it.".format(f=self['install_filename'])
+            return
         self.validate_attributes()
         print ("Downloading {f} from {u}".format(f=self['install_filename'], u=self['download_url_primary']))
         fetch_url(self['download_url_primary'], self['install_filename'], self['download_md5'])
