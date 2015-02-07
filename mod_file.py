@@ -32,6 +32,9 @@ class Mod_File(dict):
         fetch_url(self['download_url_primary'], self['install_filename'], self['download_md5'])
 
     def install(self, mod_pack):
+        if self['download_url_primary'] == "Download file manually":
+            print "Not installing {f} automatically. Download it manually if you need it.".format(f=self['install_filename'])
+            return
         self.validate_attributes()
         inst_path = os.path.join(mod_pack['install_folder'], self['install_path'])
         src_path = os.path.join(mod_pack['download_cache_folder'], self['install_filename'])
