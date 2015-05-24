@@ -17,6 +17,7 @@ URL_BASE = "http://download.nodecdn.net/containers/atl/"
 
 
 def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, install_folder):
+    # TODO - add checks for pack name containing bad characters, pack version containing bad characters.
     os.chdir(download_cache_folder)
     config_xml_file_path = fetch_atlauncher_config_xml(pack_name, pack_version)
 
@@ -42,11 +43,23 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, inst
         else:
             f['required_on_server'] = True
 
+        if 'client' in mod.attrib.keys() and mod.attrib['client'] == 'no':
+            f['required_on_client'] = False
+        else:
+            f['required_on_client'] = True
+
+        if 'optional' in mod.attrib.keys() and mod.attrib['optional'] == 'yes':
+            f['optional?'] = True
+            f['install_optional?'] = True # TODO - replace with question prompt or share code support.
+        else:
+            f['optional?'] = False
+            f['install_optional?'] = True # No effect, apart from satisfying validate() assert
+
         f['name'] = mod.attrib['name']
         f['download_url_primary'] = expand_atlauncher_url(mod.attrib['url'], mod.attrib['download'])
         f['download_md5'] = mod.attrib['md5']
         f['install_filename'] = mod.attrib['file']
-        f['required_on_client'] = True
+        # f['required_on_client'] = True
         f['description'] = mod.attrib['description']
 
         install_types_folders = {
@@ -96,6 +109,10 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, inst
         f = Mod_File()
 
         # TODO - clean up common code with 'mod' loop above.
+
+        f['optional?'] = False # TODO - this _really_ needs re-factoring to eliminate repeated code.
+        f['install_optional?'] = True
+
         f['download_url_primary'] = expand_atlauncher_url(lib.attrib['url'], lib.attrib['download'])
 
         f['download_md5'] = lib.attrib['md5']
@@ -140,6 +157,8 @@ def atlauncher_config_zip(pack_name, pack_version):
     mf['name'] = "Configs"
     mf['install_method'] = 'unzip'
     mf['install_path'] = './'
+    mf['optional?'] = False
+    mf['install_optional?'] = True
     return mf
 
 
@@ -162,6 +181,6 @@ def expand_atlauncher_url(original_url, download_type):
 
 if __name__ == "__main__":
     atl_pack = atlauncher_to_catherder(pack_name="BevosTechPack", pack_version="BTP-11-Full",
-                                 download_cache_folder="D:/ATLauncher_Hacking/cache/",
-                                 install_folder="D:/ATLauncher_Hacking/install/")
+                                 download_cache_folder="D:/mc_test/cache-btp",
+                                 install_folder="D:/mc_test/install-btp")
     atl_pack.install_server()
