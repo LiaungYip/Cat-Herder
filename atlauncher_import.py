@@ -48,6 +48,13 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, inst
         else:
             f['required_on_client'] = True
 
+        if 'optional' in mod.attrib.keys() and mod.attrib['optional'] == 'yes':
+            f['optional?'] = True
+            f['install_optional?'] = True # TODO - replace with question prompt or share code support.
+        else:
+            f['optional?'] = False
+            f['install_optional?'] = True # No effect, apart from satisfying validate() assert
+
         f['name'] = mod.attrib['name']
         f['download_url_primary'] = expand_atlauncher_url(mod.attrib['url'], mod.attrib['download'])
         f['download_md5'] = mod.attrib['md5']

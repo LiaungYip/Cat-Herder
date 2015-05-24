@@ -20,6 +20,7 @@ class Mod_File(dict):
                       'install_filename',
                       'special_actions',
                       'comments',
+                      'optional?',
                       'install_optional?'))
 
     def __init__(self, **kwargs):
@@ -85,7 +86,7 @@ class Mod_File(dict):
         #   * an optional mod, which we do not want to install.
         # Note, the 'optional' flag is overridden by "required_on_server|client".
         assert server_or_client in ("server","client")
-        validate_attributes(self)
+        self.validate_attributes()
         if self['required_on_server'] and server_or_client == "server":
             return True
 
@@ -107,6 +108,7 @@ class Mod_File(dict):
         assert self['install_path'] is not None
         assert self['install_filename'] is not None
         assert self['special_actions'] in (None, 'create_run_sh')
+        assert self['optional?'] in (True, False)
         assert self['install_optional?'] in (True, False)
 
 
