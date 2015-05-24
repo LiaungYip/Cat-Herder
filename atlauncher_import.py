@@ -109,6 +109,10 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, inst
         f = Mod_File()
 
         # TODO - clean up common code with 'mod' loop above.
+
+        f['optional?'] = False # TODO - this _really_ needs re-factoring to eliminate repeated code.
+        f['install_optional?'] = True
+
         f['download_url_primary'] = expand_atlauncher_url(lib.attrib['url'], lib.attrib['download'])
 
         f['download_md5'] = lib.attrib['md5']
@@ -153,6 +157,8 @@ def atlauncher_config_zip(pack_name, pack_version):
     mf['name'] = "Configs"
     mf['install_method'] = 'unzip'
     mf['install_path'] = './'
+    mf['optional?'] = False
+    mf['install_optional?'] = True
     return mf
 
 

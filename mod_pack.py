@@ -64,4 +64,6 @@ class Mod_Pack(dict):
         mf['name'] = "Minecraft Server Jar"
         mf['install_method'] = 'copy'
         mf['install_path'] = './'
+        mf['optional?'] = False
+        mf['install_optional?'] = True
         return mf
