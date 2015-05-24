@@ -41,10 +41,10 @@ class Mod_Pack(dict):
             print ('-')
             mkdir(self['download_cache_folder'])
             os.chdir(self['download_cache_folder'])
-            f.download()
+            f.download("server")
             mkdir(self['install_folder'])
             os.chdir(self['install_folder'])
-            f.install(self)
+            f.install(self, "server")
 
         print ('-\r\nWriting eula.txt')
         os.chdir(self['install_folder'])

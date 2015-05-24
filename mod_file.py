@@ -19,14 +19,22 @@ class Mod_File(dict):
                       'install_path',
                       'install_filename',
                       'special_actions',
-                      'comments'))
+                      'comments',
+                      'install_optional?'))
 
     def __init__(self, **kwargs):
         super(Mod_File, self).__init__(**kwargs)
         for a in self.attribs:
             self[a] = None
 
-    def download(self):
+
+
+    def download(self, server_or_client):
+        assert server_or_client in ("server","client")
+        if not self.selected_for_install(server_or_client):
+            print "Skipping {f} (optional or not required on {sc}).".format(f=self['install_filename'], cs=server_or_client)
+            return
+
         if self['download_url_primary'] == "Download file manually":
             print "Not installing {f} automatically. Download it manually if you need it.".format(f=self['install_filename'])
             return
@@ -34,7 +42,14 @@ class Mod_File(dict):
         print ("Downloading {f} from {u}".format(f=self['install_filename'], u=self['download_url_primary']))
         fetch_url(self['download_url_primary'], self['install_filename'], self['download_md5'])
 
-    def install(self, mod_pack):
+
+
+    def install(self, mod_pack, server_or_client):
+        assert server_or_client in ("server","client")
+        if not self.selected_for_install(server_or_client):
+            print "Skipping {f} (optional or not required on {sc}).".format(f=self['install_filename'], cs=server_or_client)
+            return
+
         if self['download_url_primary'] == "Download file manually":
             print "Not installing {f} automatically. Download it manually if you need it.".format(f=self['install_filename'])
             return
@@ -62,6 +77,26 @@ class Mod_File(dict):
             with open(script_path, 'w') as fh:
                 fh.write(script)
 
+    def selected_for_install (self, server_or_client = "server"):
+        # Returns true if the file should be downloaded and installed.
+        # False if the file is:
+        #   * A server-only mod, i.e. AromaBackup, not required on a client install.
+        #   * A client-only mod, i.e. DamageIndicators, not required on a server install.
+        #   * an optional mod, which we do not want to install.
+        # Note, the 'optional' flag is overridden by "required_on_server|client".
+        assert server_or_client in ("server","client")
+        validate_attributes(self)
+        if self['required_on_server'] and server_or_client == "server":
+            return True
+
+        if self['required_on_client'] and server_or_client == "client":
+            return True
+
+        if self['install_optional?']:
+            return True
+
+        return False
+
     def validate_attributes(self):
         assert sorted(self.keys()) == self.attribs  # Check no extra attributes added
         assert self['name'] is not None
@@ -72,6 +107,7 @@ class Mod_File(dict):
         assert self['install_path'] is not None
         assert self['install_filename'] is not None
         assert self['special_actions'] in (None, 'create_run_sh')
+        assert self['install_optional?'] in (True, False)
 
 
 
