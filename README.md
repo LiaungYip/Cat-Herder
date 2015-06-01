@@ -40,10 +40,10 @@ Dependencies are `plac` and `unshortenit`.
         cat_herder.py list_packs
     
         Installing with share code:
-        cat_herder.py install-from-share-code QtDNnlfZ
+        cat_herder.py install-from-share-code -s QtDNnlfZ
     
         As above, but manually specifying the download cache and server install folders:
-        cat_herder.py install-from-share-code QtDNnlfZ -c /home/mc/cache -i /home/mc/install/
+        cat_herder.py install-from-share-code -s QtDNnlfZ -c /home/mc/cache -i /home/mc/install/
     
         Installing with manually specified pack name and pack version:
         cat_herder.py install -p BevosTechPack -v BTP-11-Full -c /home/mc/cache -i /home/mc/install/
