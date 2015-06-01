@@ -2,6 +2,8 @@ import os
 
 from file_handling import mkdir
 from mod_file import Mod_File
+from pprint import pprint
+from operator import itemgetter
 
 
 class Mod_Pack(dict):
@@ -67,3 +69,22 @@ class Mod_Pack(dict):
         mf['optional?'] = False
         mf['install_optional?'] = True
         return mf
+
+    def print_mod_files_list(self):
+        s = sorted(self.mod_files, key=itemgetter('optional?','install_optional?'))
+        print"""
+--------------------------------------------------------------------------------
+Mod pack component listing
+i = selected for install.
+o = optional mod.
+S = server mod.
+C = client mod.
+--------------------------------------------------------------------------------"""
+        bits = [' ',]*5
+        for m in s:
+            bits[0] = 'i' if m['install_optional?'] else ' '
+            bits[1] = 'o' if m['optional?'] else ' '
+            bits[2] = 'S' if m['required_on_server'] else ' '
+            bits[3] = 'C' if m['required_on_client'] else ' '
+
+            print ''.join(bits) + m['install_filename']
