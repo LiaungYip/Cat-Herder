@@ -11,6 +11,7 @@ import unshortenit
 from file_handling import fetch_url
 from mod_file import Mod_File
 from mod_pack import Mod_Pack
+import re
 
 URL_BASE = "http://download.nodecdn.net/containers/atl/"
 
@@ -18,7 +19,16 @@ URL_BASE = "http://download.nodecdn.net/containers/atl/"
 def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder,
                             install_folder):
     # Returns a Mod_Pack object describing the given ATLauncher mod pack.
-    # TODO - add checks for pack name containing bad characters, pack version containing bad characters.
+
+    # This is exactly what is used in the ATlauncher code.
+    # Note \W is shorter, but also includes the underscore. We are trying
+    # to exactly match ATLauncher behaviour.
+    # Note 2: ATLauncher calls this "getSafeName()".
+    sn = re.sub("[^A-Za-z0-9]","",pack_name)
+    if pack_name != sn:
+        print "INFO - changing pack name {p1} to {p2}.".format(p1=pack_name,p2=sn)
+        pack_name = sn
+
     os.chdir(download_cache_folder)
     config_xml_file_path = fetch_atlauncher_config_xml(pack_name, pack_version)
 
@@ -72,6 +82,7 @@ def mod_lib_handler(xml, mod_or_lib):
 
 
 def mod_handler(mod, minecraft_version):
+    # See ATLauncher source - java\com\atlauncher\data\Mod.java
     f = mod_lib_handler(mod, 'mod')
 
     # 'server' attribute may be missing from XML. Default is 'yes'.
@@ -207,7 +218,7 @@ def expand_atlauncher_url(original_url, download_type):
 
 
 if __name__ == "__main__":
-    atl_pack = atlauncher_to_catherder(pack_name="BevosTechPack",
+    atl_pack = atlauncher_to_catherder(pack_name="Bevo's Tech Pack",
                                        pack_version="BTP-11-Full",
                                        download_cache_folder="D:/mc_test/cache-btp",
                                        install_folder="D:/mc_test/install-btp")
