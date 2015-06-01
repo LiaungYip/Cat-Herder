@@ -41,7 +41,7 @@ def process_share_code_json (json_string):
                  pack_version = json_data['data']['version'],
                  selected_mods = selected_mods)
 
-def get_mod_pack_with_share_code (share_code):
+def get_mod_pack_with_share_code (share_code, download_cache_folder, install_folder):
     # Returns a Mod_Pack object.
     #
     # The pack name and pack version are implied by the share code, so these
@@ -54,15 +54,10 @@ def get_mod_pack_with_share_code (share_code):
 
     mp = atlauncher_to_catherder(pack_name = r['pack'],
                                  pack_version = r['pack_version'],
-                                 download_cache_folder="D:/mc_test/cache",
-                                 install_folder="D:/mc_test/install")
+                                 download_cache_folder=download_cache_folder,
+                                 install_folder=install_folder)
 
     for m in mp.mod_files:
         if m['optional?']:
             m['install_optional?'] = m['name'] in r['selected_mods']
-
-    mp.print_mod_files_list()
-
-
-
-get_mod_pack_with_share_code('QtDNnlfZ')
+    return mp
