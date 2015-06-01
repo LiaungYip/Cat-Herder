@@ -33,7 +33,7 @@ class Mod_File(dict):
     def download(self, server_or_client):
         assert server_or_client in ("server","client")
         if not self.selected_for_install(server_or_client):
-            print "Skipping {f} (optional or not required on {sc}).".format(f=self['install_filename'], cs=server_or_client)
+            print "Skipping {f} (optional or not required on {sc}).".format(f=self['install_filename'], sc=server_or_client)
             return
 
         if self['download_url_primary'] == "Download file manually":
@@ -48,7 +48,7 @@ class Mod_File(dict):
     def install(self, mod_pack, server_or_client):
         assert server_or_client in ("server","client")
         if not self.selected_for_install(server_or_client):
-            print "Skipping {f} (optional or not required on {sc}).".format(f=self['install_filename'], cs=server_or_client)
+            print "Skipping {f} (optional or not required on {sc}).".format(f=self['install_filename'], sc=server_or_client)
             return
 
         if self['download_url_primary'] == "Download file manually":
@@ -80,18 +80,13 @@ class Mod_File(dict):
 
     def selected_for_install (self, server_or_client = "server"):
         # Returns true if the file should be downloaded and installed.
-        # False if the file is:
-        #   * A server-only mod, i.e. AromaBackup, not required on a client install.
-        #   * A client-only mod, i.e. DamageIndicators, not required on a server install.
-        #   * an optional mod, which we do not want to install.
-        # Note, the 'optional' flag is overridden by "required_on_server|client".
         assert server_or_client in ("server","client")
         self.validate_attributes()
-        if self['required_on_server'] and server_or_client == "server":
-            return True
+        if server_or_client == "server" and not (self['required_on_server']):
+            return False
 
-        if self['required_on_client'] and server_or_client == "client":
-            return True
+        if server_or_client == "client" and not (self['required_on_client']):
+            return False
 
         if self['install_optional?']:
             return True
