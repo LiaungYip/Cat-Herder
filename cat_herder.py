@@ -15,12 +15,15 @@ java -Xmx2G -XX:MaxPermSize=256M -jar {fn} nogui"""
 import os
 import json
 from operator import itemgetter
+import re
 
 import plac
 
 from file_handling import mkdir, fetch_url
 from atlauncher_import import atlauncher_to_catherder
 
+def safe_name (dirty):
+    return re.sub('[^A-Za-z0-9]','',dirty)
 
 def get_pack_json():
     url = "http://download.nodecdn.net/containers/atl/launcher/json/packs.json"
@@ -43,6 +46,18 @@ def list_packs(packs_json):
             ldv = pack['devVersions'][0]['version']
         print(u"{name:<38}| {latest_version:<19}| {latest_dev_version:<19}".format(name=n, latest_version=lv,
                                                                                    latest_dev_version=ldv))
+
+def get_latest_pack_version(packs_json, pack_name):
+    safe_pack_name = safe_name (pack_name)
+    for pack in packs_json:
+        if safe_name(pack['name']) == safe_pack_name:
+            if pack['versions']:
+                lv = pack['versions'][0]['version']
+                return lv
+            else:
+                return None
+    raise KeyError("Pack name {P} ({S}) not found in packs.json.").format(
+        P = pack_name, S = safe_name )
 
 
 @plac.annotations(
@@ -76,8 +91,6 @@ def main(operation, pack_name, pack_version, install_folder, cache_folder, dry_r
 
     pack_names = [p['name'] for p in packs_json]
 
-    # import pprint; pprint.pprint(packs_json)
-
     if operation == 'list_packs':
         list_packs(packs_json)
 
@@ -85,9 +98,12 @@ def main(operation, pack_name, pack_version, install_folder, cache_folder, dry_r
         print "Update not implemented yet."
 
     if operation == 'install':
+        if not pack_version:
+            pack_version = get_latest_pack_version (packs_json, pack_name)
+
         mp = atlauncher_to_catherder(pack_name, pack_version, cache_folder, install_folder)
         if dry_run:
-            pass
+            mp.print_mod_files_list()
         else:
             mp.install_server()
 

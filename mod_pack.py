@@ -28,7 +28,7 @@ class Mod_Pack(dict):
 
         for f in self.mod_files:
             if not f['required_on_server']:
-                # pass
+                # pass - note that currently, there are some files (i.e. authlib-1.5.13.jar) which don't have an install path, so can't be handled.
                 continue
 
             try:
@@ -41,9 +41,11 @@ class Mod_Pack(dict):
                 return 'FAILURE'
 
             print ('-')
+
             mkdir(self['download_cache_folder'])
             os.chdir(self['download_cache_folder'])
             f.download("server")
+
             mkdir(self['install_folder'])
             os.chdir(self['install_folder'])
             f.install(self, "server")
