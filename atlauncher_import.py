@@ -3,7 +3,7 @@ Li-aung "Lewis" Yip
 minecraft@penwatch.net
 """
 
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as element_tree
 import os
 
 import unshortenit
@@ -14,14 +14,16 @@ from mod_pack import Mod_Pack
 
 URL_BASE = "http://download.nodecdn.net/containers/atl/"
 
-def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, install_folder):
+
+def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder,
+                            install_folder):
     # Returns a Mod_Pack object describing the given ATLauncher mod pack.
     # TODO - add checks for pack name containing bad characters, pack version containing bad characters.
     os.chdir(download_cache_folder)
     config_xml_file_path = fetch_atlauncher_config_xml(pack_name, pack_version)
 
     # Process Configs.xml and pull out list of files to download.
-    tree = ET.parse(config_xml_file_path)
+    tree = element_tree.parse(config_xml_file_path)
     root = tree.getroot()
     mods = root.findall("./mods/mod")
     libs = root.findall("./libraries/library")
@@ -50,8 +52,9 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, inst
             mp.mod_files.append(f)
     return mp
 
+
 def mod_lib_handler(xml, mod_or_lib):
-    assert mod_or_lib in ("mod","lib")
+    assert mod_or_lib in ("mod", "lib")
     f = Mod_File()
     f['download_url_primary'] = expand_atlauncher_url(xml.attrib['url'],
                                                       xml.attrib['download'])
@@ -67,7 +70,8 @@ def mod_lib_handler(xml, mod_or_lib):
 
     return f
 
-def mod_handler (mod, minecraft_version):
+
+def mod_handler(mod, minecraft_version):
     f = mod_lib_handler(mod, 'mod')
 
     # 'server' attribute may be missing from XML. Default is 'yes'.
@@ -79,10 +83,12 @@ def mod_handler (mod, minecraft_version):
 
     if 'optional' in mod.attrib.keys() and mod.attrib['optional'] == 'yes':
         f['optional?'] = True
-        f['install_optional?'] = True # TODO - replace with question prompt or share code support.
+        f[
+            'install_optional?'] = True  # TODO - replace with question prompt or share code support.
     else:
         f['optional?'] = False
-        f['install_optional?'] = True # No effect, apart from satisfying validate() assert
+        f[
+            'install_optional?'] = True  # No effect, apart from satisfying validate() assert
 
     install_types_folders = {
         'mods': 'mods/',
@@ -93,7 +99,7 @@ def mod_handler (mod, minecraft_version):
         'denlib': 'mods/denlib/',  # not tested
         'plugins': 'plugins/',  # not tested
         'coremods': 'coremods/',  # not tested
-        'jarmod': 'jarmods/',  #not tested
+        'jarmod': 'jarmods/',  # not tested
         'disabled': 'disabledmods/',  #not tested
         'bin': 'bin/',  #not tested
         'natives': 'natives/'  #not tested
@@ -106,7 +112,7 @@ def mod_handler (mod, minecraft_version):
     if t in install_types_folders.keys():
         f['install_method'] = 'copy'
         f['install_path'] = install_types_folders[t]
-        if t in ['forge','mcpc']:
+        if t in ['forge', 'mcpc']:
             f['special_actions'] = 'create_run_sh'
 
     elif t == 'extract':
@@ -118,27 +124,31 @@ def mod_handler (mod, minecraft_version):
             f['install_path'] = 'mods/'
         else:
             print (
-                "WARNING - didn't know what to do with file {f} of type {t} extractto type {e}.".format(f=fn, t=t,
-                                                                                                        e=e))
+                "WARNING - didn't know what to do with file {f} of type {t} extractto type {e}.".format(
+                    f=fn, t=t,
+                    e=e))
     else:
-        print ("WARNING - didn't know what to do with file {f} of type {t}.".format(f=fn, t=t))
+        print (
+            "WARNING - didn't know what to do with file {f} of type {t}.".format(
+                f=fn, t=t))
         return None
     print ('Adding mod {m} to download list - {u}'.format(m=fn, u=url))
     return f
 
 
-def lib_handler (lib):
+def lib_handler(lib):
     f = mod_lib_handler(lib, 'lib')
     f['optional?'] = False
     f['install_optional?'] = True
     f['install_method'] = 'copy'
     if 'server' in lib.attrib.keys():
         f['required_on_server'] = True
-        [dir_path, filename] = os.path.split('libraries/' + lib.attrib['server'])
+        [dir_path, filename] = os.path.split(
+            'libraries/' + lib.attrib['server'])
         f['install_path'] = dir_path
 
-        l=f['install_filename']
-        u=f['download_url_primary']
+        l = f['install_filename']
+        u = f['download_url_primary']
         print (
             'Adding library {l} to download list - {u}'.format(l=l, u=u))
     else:
@@ -148,17 +158,22 @@ def lib_handler (lib):
 
 
 def fetch_atlauncher_config_xml(pack_name, pack_version):
-    config_xml_url = "{u}packs/{pn}/versions/{pv}/Configs.xml".format(u=URL_BASE, pn=pack_name, pv=pack_version)
-    config_xml_filename = "Configs_{pn}_{pv}.xml".format(pn=pack_name, pv=pack_version)
+    config_xml_url = "{u}packs/{pn}/versions/{pv}/Configs.xml".format(
+        u=URL_BASE, pn=pack_name, pv=pack_version)
+    config_xml_filename = "Configs_{pn}_{pv}.xml".format(pn=pack_name,
+                                                         pv=pack_version)
     config_xml_file_path = fetch_url(config_xml_url, config_xml_filename, None)
     return config_xml_file_path
 
 
 def atlauncher_config_zip(pack_name, pack_version):
     mf = Mod_File()
-    mf['download_url_primary'] = "{u}packs/{pn}/versions/{pv}/Configs.zip".format(u=URL_BASE, pn=pack_name,
-                                                                                  pv=pack_version)
-    mf['install_filename'] = "Configs_{pn}_{pv}.zip".format(pn=pack_name, pv=pack_version)
+    mf[
+        'download_url_primary'] = "{u}packs/{pn}/versions/{pv}/Configs.zip".format(
+        u=URL_BASE, pn=pack_name,
+        pv=pack_version)
+    mf['install_filename'] = "Configs_{pn}_{pv}.zip".format(pn=pack_name,
+                                                            pv=pack_version)
     mf['required_on_server'] = True
     mf['required_on_client'] = True
     mf['name'] = "Configs"
@@ -183,14 +198,17 @@ def expand_atlauncher_url(original_url, download_type):
         if 'http://adf.ly' in original_url:
             status = unshortenit.unshorten(original_url)
             if status[1] == 200:  # 200 = HTTP OK
-                print ('Unshortened {url1} to {url2}.'.format(url1=original_url, url2=status[0]))
+                print ('Unshortened {url1} to {url2}.'.format(url1=original_url,
+                                                              url2=status[0]))
                 return status[0]
             else:
                 return 'INVALID ADFLY LINK OR OTHER HTTP ERROR'
         return 'Download file manually'
 
+
 if __name__ == "__main__":
-    atl_pack = atlauncher_to_catherder(pack_name="BevosTechPack", pack_version="BTP-11-Full",
-                                 download_cache_folder="D:/mc_test/cache-btp",
-                                 install_folder="D:/mc_test/install-btp")
+    atl_pack = atlauncher_to_catherder(pack_name="BevosTechPack",
+                                       pack_version="BTP-11-Full",
+                                       download_cache_folder="D:/mc_test/cache-btp",
+                                       install_folder="D:/mc_test/install-btp")
     atl_pack.install_server()
