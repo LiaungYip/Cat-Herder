@@ -4,6 +4,8 @@ A command line tool for updating Minecraft servers based on ATLauncher modpacks.
 
 Currently, `cat-herder` is able to install new servers using the `install` option. The `update` option is not implemented yet.
 
+As of 2015-06-02, there is support for "Share Codes" via the `install-from-share-code` option.
+
 Regardless, the tool is still useful for directly downloading an updated version of a modpack to a server, eliminating the pesky cycle of using the ATLauncher app to download a new server, zip the resulting installation, and upload the entire zip at painfully slow speeds.
 
 ## Disclaimer
