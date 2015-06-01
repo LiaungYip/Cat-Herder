@@ -12,11 +12,10 @@ from file_handling import fetch_url
 from mod_file import Mod_File
 from mod_pack import Mod_Pack
 
-
 URL_BASE = "http://download.nodecdn.net/containers/atl/"
 
-
 def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, install_folder):
+    # Returns a Mod_Pack object describing the given ATLauncher mod pack.
     # TODO - add checks for pack name containing bad characters, pack version containing bad characters.
     os.chdir(download_cache_folder)
     config_xml_file_path = fetch_atlauncher_config_xml(pack_name, pack_version)
@@ -27,118 +26,126 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder, inst
     mods = root.findall("./mods/mod")
     libs = root.findall("./libraries/library")
 
-    # From config file, pull out minecraft version number (need this for creating 'dependency' folder, i.e. ./mods/1.7.10/.
+    # From config file, pull out minecraft version number (need this for
+    # creating 'dependency' folder, i.e. ./mods/1.7.10/.
     minecraft_version = root.find("./pack/minecraft").text
 
-    mp = Mod_Pack(pack_name, pack_version, download_cache_folder, install_folder, minecraft_version)
+    # Mod_Pack is a parent class which contains a list of Mod_Files.
+    mp = Mod_Pack(pack_name, pack_version, download_cache_folder,
+                  install_folder, minecraft_version)
 
-
+    # Config zip is a special file, not included in the modpack's XML
+    # description.
+    mp.mod_files.append(atlauncher_config_zip(pack_name, pack_version))
 
     # Build list of mod files that need to be downloaded.
     for mod in mods:
-        f = Mod_File()
-
-        if 'server' in mod.attrib.keys() and mod.attrib['server'] == 'no':
-            f['required_on_server'] = False
-        else:
-            f['required_on_server'] = True
-
-        if 'client' in mod.attrib.keys() and mod.attrib['client'] == 'no':
-            f['required_on_client'] = False
-        else:
-            f['required_on_client'] = True
-
-        if 'optional' in mod.attrib.keys() and mod.attrib['optional'] == 'yes':
-            f['optional?'] = True
-            f['install_optional?'] = True # TODO - replace with question prompt or share code support.
-        else:
-            f['optional?'] = False
-            f['install_optional?'] = True # No effect, apart from satisfying validate() assert
-
-        f['name'] = mod.attrib['name']
-        f['download_url_primary'] = expand_atlauncher_url(mod.attrib['url'], mod.attrib['download'])
-        f['download_md5'] = mod.attrib['md5']
-        f['install_filename'] = mod.attrib['file']
-        # f['required_on_client'] = True
-        f['description'] = mod.attrib['description']
-
-        install_types_folders = {
-            'mods': 'mods/',
-            'forge': './',
-            'dependency': 'mods/' + mp['minecraft_version'] + "/",
-            'ic2lib': 'mods/ic2/',
-            'flan': 'mods/Flan/',  # not tested
-            'denlib': 'mods/denlib/',  # not tested
-            'plugins': 'plugins/',  # not tested
-            'coremods': 'coremods/',  # not tested
-            'jarmod': 'jarmods/',  #not tested
-            'disabled': 'disabledmods/',  #not tested
-            'bin': 'bin/',  #not tested
-            'natives': 'natives/'  #not tested
-        }
-
-        t = mod.attrib['type']
-        fn = f['install_filename']
-        url = f['download_url_primary']
-
-        if t in install_types_folders.keys():
-            f['install_method'] = 'copy'
-            f['install_path'] = install_types_folders[t]
-            if t in ['forge','mcpc']:
-                f['special_actions'] = 'create_run_sh'
-        elif t == 'extract':
-            f['install_method'] = 'unzip'
-            e = mod.attrib['extractto']
-            if e == 'root':
-                f['install_path'] = './'
-            elif e == 'mods':
-                f['install_path'] = 'mods/'
-            else:
-                print (
-                    "WARNING - didn't know what to do with file {f} of type {t} extractto type {e}.".format(f=fn, t=t,
-                                                                                                            e=e))
-        else:
-            print ("WARNING - didn't know what to do with file {f} of type {t}.".format(f=fn, t=t))
-            continue
-        print ('Adding mod {m} to download list - {u}'.format(m=fn, u=url))
-        mp.mod_files.append(f)
+        f = mod_handler(mod, minecraft_version)
+        if f is not None:
+            mp.mod_files.append(f)
 
     for lib in libs:
-        # print lib.attrib
-
-        f = Mod_File()
-
-        # TODO - clean up common code with 'mod' loop above.
-
-        f['optional?'] = False # TODO - this _really_ needs re-factoring to eliminate repeated code.
-        f['install_optional?'] = True
-
-        f['download_url_primary'] = expand_atlauncher_url(lib.attrib['url'], lib.attrib['download'])
-
-        f['download_md5'] = lib.attrib['md5']
-        f['install_filename'] = lib.attrib['file']
-        f['name'] = 'a library'
-        f['install_method'] = 'copy'
-        f['description'] = 'Library.'
-        if 'server' in lib.attrib.keys():
-            f['required_on_server'] = True
-            # noinspection PyUnusedLocal
-            [dir_path, filename] = os.path.split('libraries/' + lib.attrib['server'])
-            f['install_path'] = dir_path
-            print (
-                'Adding library {l} to download list - {u}'.format(l=f['install_filename'],
-                                                                   u=f['download_url_primary']))
-        else:
-            f['required_on_server'] = False
-            print ("Library {l} had no 'server' attribute - assuming it's only required on clients - skipping.".format(
-                l=f['install_filename']))
-            continue
-        f['required_on_client'] = True
-        mp.mod_files.append(f)
-
-    mp.mod_files.append(atlauncher_config_zip(pack_name, pack_version))
-
+        f = lib_handler(lib)
+        if f is not None:
+            mp.mod_files.append(f)
     return mp
+
+def mod_lib_handler(xml, mod_or_lib):
+    assert mod_or_lib in ("mod","lib")
+    f = Mod_File()
+    f['download_url_primary'] = expand_atlauncher_url(xml.attrib['url'],
+                                                      xml.attrib['download'])
+    f['download_md5'] = xml.attrib['md5']
+    f['install_filename'] = xml.attrib['file']
+
+    if mod_or_lib == 'mod':
+        f['name'] = xml.attrib['name']
+        f['description'] = xml.attrib['description']
+    else:
+        f['name'] = "A library."
+        f['description'] = 'A library.'
+
+    return f
+
+def mod_handler (mod, minecraft_version):
+    f = mod_lib_handler(mod, 'mod')
+
+    # 'server' attribute may be missing from XML. Default is 'yes'.
+    f['required_on_server'] = not ('server' in mod.attrib.keys()
+                                   and mod.attrib['server'] == 'no')
+
+    f['required_on_client'] = not ('client' in mod.attrib.keys()
+                                   and mod.attrib['client'] == 'no')
+
+    if 'optional' in mod.attrib.keys() and mod.attrib['optional'] == 'yes':
+        f['optional?'] = True
+        f['install_optional?'] = True # TODO - replace with question prompt or share code support.
+    else:
+        f['optional?'] = False
+        f['install_optional?'] = True # No effect, apart from satisfying validate() assert
+
+    install_types_folders = {
+        'mods': 'mods/',
+        'forge': './',
+        'dependency': 'mods/' + minecraft_version + "/",
+        'ic2lib': 'mods/ic2/',
+        'flan': 'mods/Flan/',  # not tested
+        'denlib': 'mods/denlib/',  # not tested
+        'plugins': 'plugins/',  # not tested
+        'coremods': 'coremods/',  # not tested
+        'jarmod': 'jarmods/',  #not tested
+        'disabled': 'disabledmods/',  #not tested
+        'bin': 'bin/',  #not tested
+        'natives': 'natives/'  #not tested
+    }
+
+    t = mod.attrib['type']
+    fn = f['install_filename']
+    url = f['download_url_primary']
+
+    if t in install_types_folders.keys():
+        f['install_method'] = 'copy'
+        f['install_path'] = install_types_folders[t]
+        if t in ['forge','mcpc']:
+            f['special_actions'] = 'create_run_sh'
+
+    elif t == 'extract':
+        f['install_method'] = 'unzip'
+        e = mod.attrib['extractto']
+        if e == 'root':
+            f['install_path'] = './'
+        elif e == 'mods':
+            f['install_path'] = 'mods/'
+        else:
+            print (
+                "WARNING - didn't know what to do with file {f} of type {t} extractto type {e}.".format(f=fn, t=t,
+                                                                                                        e=e))
+    else:
+        print ("WARNING - didn't know what to do with file {f} of type {t}.".format(f=fn, t=t))
+        return None
+    print ('Adding mod {m} to download list - {u}'.format(m=fn, u=url))
+    return f
+
+
+def lib_handler (lib):
+    f = mod_lib_handler(lib, 'lib')
+    f['optional?'] = False
+    f['install_optional?'] = True
+    f['install_method'] = 'copy'
+    if 'server' in lib.attrib.keys():
+        f['required_on_server'] = True
+        [dir_path, filename] = os.path.split('libraries/' + lib.attrib['server'])
+        f['install_path'] = dir_path
+
+        l=f['install_filename']
+        u=f['download_url_primary']
+        print (
+            'Adding library {l} to download list - {u}'.format(l=l, u=u))
+    else:
+        f['required_on_server'] = False
+    f['required_on_client'] = True
+    return f
+
 
 def fetch_atlauncher_config_xml(pack_name, pack_version):
     config_xml_url = "{u}packs/{pn}/versions/{pv}/Configs.xml".format(u=URL_BASE, pn=pack_name, pv=pack_version)
@@ -165,10 +172,13 @@ def atlauncher_config_zip(pack_name, pack_version):
 def expand_atlauncher_url(original_url, download_type):
     if download_type == 'direct':
         return original_url
+
     elif download_type == 'server':
-        # Note, pathname2url for applying percent encoding - "Pams HarvestCraft 1.7.10c.jar" is an example of something that needs percent-encoding.
-        # return URL_BASE + urllib.pathname2url(original_url)
+        # Note, pathname2url for applying percent encoding -
+        # "Pams HarvestCraft 1.7.10c.jar" is an example of something that
+        # needs percent-encoding.
         return URL_BASE + original_url.replace(' ', '%20')
+
     elif download_type == 'browser':
         if 'http://adf.ly' in original_url:
             status = unshortenit.unshorten(original_url)
