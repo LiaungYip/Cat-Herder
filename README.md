@@ -6,13 +6,15 @@ Currently, `cat-herder` is able to install new servers using the `install` optio
 
 As of 2015-06-02, there is support for "Share Codes" via the `install-from-share-code` option.
 
-Regardless, the tool is still useful for directly downloading an updated version of a modpack to a server, eliminating the pesky cycle of using the ATLauncher app to download a new server, zip the resulting installation, and upload the entire zip at painfully slow speeds.
+The tool is still useful for directly downloading an updated version of a modpack to a server, eliminating the pesky cycle of using the ATLauncher app to download a new server, zip the resulting installation, and upload the entire zip at painfully slow speeds.
+
+Ryan of the ATLauncher has been contacted by email, is aware this project exists, and has no objections to it.
 
 ## Disclaimer
 
-The tool has been tested to install a Bevo's Tech Pack BTP-11-Full server, which works successfully on my machine.
+This tool is not very thoroughly tested and may do surprising things. It is recommended to have a backup of your server before you use this.
 
-However! This is alpha, un-tested software, so *back up your server before using this tool*.
+Do not point at people's faces. See your doctor if pain persists.
 
 ## Feedback
 
