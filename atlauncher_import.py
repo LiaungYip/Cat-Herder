@@ -68,7 +68,13 @@ def mod_lib_handler(xml, mod_or_lib):
     f = Mod_File()
     f['download_url_primary'] = expand_atlauncher_url(xml.attrib['url'],
                                                       xml.attrib['download'])
-    f['download_md5'] = xml.attrib['md5']
+
+    # Some entries don't return an md5 hash...
+    if 'md5' in xml.attrib:
+        f['download_md5'] = xml.attrib['md5']
+    else:
+        f['download_md5'] = None
+
     f['install_filename'] = xml.attrib['file']
 
     if mod_or_lib == 'mod':
