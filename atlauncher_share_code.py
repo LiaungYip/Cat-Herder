@@ -33,7 +33,12 @@ def process_share_code_json (json_string):
 
     # Note that the /data/mods/ node of the json_data itself contains JSON.
     # It's JSON all the way down, man.
-    json_mods_data = json.loads(json_data['data']['mods'])
+    #json_mods_data = json.loads(json_data['data']['mods'])
+
+    # Apparently some recent upgrade to Python or the JSON module broke
+    # the above code. Try this instead.
+    json_mods_data = json_data['data']['mods']
+
     optional_mods = json_mods_data['optional']
     selected_mods = [m['name'] for m in optional_mods if m['selected'] == True]
 
