@@ -12,6 +12,7 @@ Requires:
 STARTUP_SCRIPT_TEMPLATE = """#!/bin/bash
 java -Xmx2G -XX:MaxPermSize=256M -jar {fn} nogui"""
 
+import sys
 import os
 import json
 from operator import itemgetter
@@ -131,4 +132,6 @@ def main(operation, pack_name, pack_version, install_folder, cache_folder, share
             mp.install_server()
 
 if __name__ == '__main__':
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
     plac.call(main)
