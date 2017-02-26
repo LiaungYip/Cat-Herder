@@ -97,12 +97,12 @@ def mod_handler(mod, minecraft_version):
 
     # 'server' attribute may be missing from XML. Default is 'yes'.
     f['required_on_server'] = not ('server' in mod.keys()
-                                   and mod['server'] == 'no')
+                                   and mod['server'] == False)
 
     f['required_on_client'] = not ('client' in mod.keys()
-                                   and mod['client'] == 'no')
+                                   and mod['client'] == False)
 
-    if 'optional' in mod.keys() and mod['optional'] == 'yes':
+    if 'optional' in mod.keys() and mod['optional'] == True:
         f['optional?'] = True
         f[
             'install_optional?'] = True  # TODO - replace with question prompt or share code support.
