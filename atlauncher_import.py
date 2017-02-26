@@ -52,7 +52,8 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder,
 
     # Config zip is a special file, not included in the modpack's XML
     # description.
-    mp.mod_files.append(atlauncher_config_zip(pack_name, pack_version))
+    if not ('noConfigs' in jsondata and jsondata['noConfigs'] == True):
+        mp.mod_files.append(atlauncher_config_zip(pack_name, pack_version))
 
     # Build list of mod files that need to be downloaded.
     for mod in mods:
