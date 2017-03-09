@@ -139,7 +139,7 @@ def mod_handler(mod, minecraft_version):
 
     elif t == 'extract':
         f['install_method'] = 'unzip'
-        e = mod.attrib['extractto']
+        e = mod['extractTo']
         if e == 'root':
             f['install_path'] = './'
         elif e == 'mods':
