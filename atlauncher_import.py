@@ -1,11 +1,14 @@
+# -*- coding: utf-8 -*-
 """
 Li-aung "Lewis" Yip
 minecraft@penwatch.net
+Json port "leagris" Léa Gris
+lea.gris@noiraude.net
 """
 
-import xml.etree.ElementTree as element_tree
+import json
 import os
-
+import urllib
 import unshortenit
 
 from file_handling import fetch_url
@@ -30,17 +33,18 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder,
         pack_name = sn
 
     os.chdir(download_cache_folder)
-    config_xml_file_path = fetch_atlauncher_config_xml(pack_name, pack_version)
+    config_json_file_path = fetch_atlauncher_config_json(pack_name, pack_version)
 
-    # Process Configs.xml and pull out list of files to download.
-    tree = element_tree.parse(config_xml_file_path)
-    root = tree.getroot()
-    mods = root.findall("./mods/mod")
-    libs = root.findall("./libraries/library")
+    # Process Configs.json and pull out list of files to download.
+    with open(config_json_file_path, 'r') as data_file:
+      jsondata = json.load(data_file)
+
+    mods = jsondata['mods']
+    libs = jsondata['libraries']
 
     # From config file, pull out minecraft version number (need this for
     # creating 'dependency' folder, i.e. ./mods/1.7.10/.
-    minecraft_version = root.find("./pack/minecraft").text
+    minecraft_version = jsondata['minecraft']
 
     # Mod_Pack is a parent class which contains a list of Mod_Files.
     mp = Mod_Pack(pack_name, pack_version, download_cache_folder,
@@ -48,7 +52,8 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder,
 
     # Config zip is a special file, not included in the modpack's XML
     # description.
-    mp.mod_files.append(atlauncher_config_zip(pack_name, pack_version))
+    if not ('noConfigs' in jsondata and jsondata['noConfigs'] == True):
+        mp.mod_files.append(atlauncher_config_zip(pack_name, pack_version))
 
     # Build list of mod files that need to be downloaded.
     for mod in mods:
@@ -63,23 +68,23 @@ def atlauncher_to_catherder(pack_name, pack_version, download_cache_folder,
     return mp
 
 
-def mod_lib_handler(xml, mod_or_lib):
+def mod_lib_handler(mol, mod_or_lib):
     assert mod_or_lib in ("mod", "lib")
     f = Mod_File()
-    f['download_url_primary'] = expand_atlauncher_url(xml.attrib['url'],
-                                                      xml.attrib['download'])
+    f['download_url_primary'] = expand_atlauncher_url(mol['url'],
+                                                      mol['download'])
 
     # Some entries don't return an md5 hash...
-    if 'md5' in xml.attrib:
-        f['download_md5'] = xml.attrib['md5']
+    if 'md5' in mol:
+        f['download_md5'] = mol['md5']
     else:
         f['download_md5'] = None
 
-    f['install_filename'] = xml.attrib['file']
+    f['install_filename'] = mol['file']
 
     if mod_or_lib == 'mod':
-        f['name'] = xml.attrib['name']
-        f['description'] = xml.attrib['description']
+        f['name'] = mol['name']
+        f['description'] = mol['description']
     else:
         f['name'] = "A library."
         f['description'] = 'A library.'
@@ -92,13 +97,13 @@ def mod_handler(mod, minecraft_version):
     f = mod_lib_handler(mod, 'mod')
 
     # 'server' attribute may be missing from XML. Default is 'yes'.
-    f['required_on_server'] = not ('server' in mod.attrib.keys()
-                                   and mod.attrib['server'] == 'no')
+    f['required_on_server'] = not ('server' in mod.keys()
+                                   and mod['server'] == False)
 
-    f['required_on_client'] = not ('client' in mod.attrib.keys()
-                                   and mod.attrib['client'] == 'no')
+    f['required_on_client'] = not ('client' in mod.keys()
+                                   and mod['client'] == False)
 
-    if 'optional' in mod.attrib.keys() and mod.attrib['optional'] == 'yes':
+    if 'optional' in mod.keys() and mod['optional'] == True:
         f['optional?'] = True
         f[
             'install_optional?'] = True  # TODO - replace with question prompt or share code support.
@@ -122,7 +127,7 @@ def mod_handler(mod, minecraft_version):
         'natives': 'natives/'  #not tested
     }
 
-    t = mod.attrib['type']
+    t = mod['type']
     fn = f['install_filename']
     url = f['download_url_primary']
 
@@ -134,7 +139,7 @@ def mod_handler(mod, minecraft_version):
 
     elif t == 'extract':
         f['install_method'] = 'unzip'
-        e = mod.attrib['extractto']
+        e = mod['extractTo']
         if e == 'root':
             f['install_path'] = './'
         elif e == 'mods':
@@ -158,10 +163,10 @@ def lib_handler(lib):
     f['optional?'] = False
     f['install_optional?'] = True
     f['install_method'] = 'copy'
-    if 'server' in lib.attrib.keys():
+    if 'server' in lib.keys():
         f['required_on_server'] = True
         [dir_path, filename] = os.path.split(
-            'libraries/' + lib.attrib['server'])
+            'libraries/' + lib['server'])
         f['install_path'] = dir_path
 
         l = f['install_filename']
@@ -174,13 +179,13 @@ def lib_handler(lib):
     return f
 
 
-def fetch_atlauncher_config_xml(pack_name, pack_version):
-    config_xml_url = "{u}packs/{pn}/versions/{pv}/Configs.xml".format(
+def fetch_atlauncher_config_json(pack_name, pack_version):
+    config_json_url = "{u}packs/{pn}/versions/{pv}/Configs.json".format(
         u=URL_BASE, pn=pack_name, pv=pack_version)
-    config_xml_filename = "Configs_{pn}_{pv}.xml".format(pn=pack_name,
+    config_json_filename = "Configs_{pn}_{pv}.json".format(pn=pack_name,
                                                          pv=pack_version)
-    config_xml_file_path = fetch_url(config_xml_url, config_xml_filename, None)
-    return config_xml_file_path
+    config_json_file_path = fetch_url(config_json_url, config_json_filename, None)
+    return config_json_file_path
 
 
 def atlauncher_config_zip(pack_name, pack_version):
@@ -209,7 +214,7 @@ def expand_atlauncher_url(original_url, download_type):
         # Note, pathname2url for applying percent encoding -
         # "Pams HarvestCraft 1.7.10c.jar" is an example of something that
         # needs percent-encoding.
-        return URL_BASE + original_url.replace(' ', '%20')
+        return URL_BASE + urllib.quote(original_url, safe='/')
 
     elif download_type == 'browser':
         if 'http://adf.ly' in original_url:
