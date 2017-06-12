@@ -15,7 +15,8 @@ def check_crc32(file_path, target_crc32):
 
 def download(source_url, dest_file_path):
     try:
-        d = urllib2.urlopen(source_url)
+        clireq = urllib2.Request(source_url, headers={'User-Agent':"Magic Browser"})
+        d = urllib2.urlopen(clireq)
     except urllib2.HTTPError, e:
         if e.code == 404:
             print ("ERROR - {u} was 404. Check the exact spelling of the pack name and pack version.".format(u=source_url))
